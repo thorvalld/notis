@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:myNotes/add_note.dart';
+import 'package:myNotes/models/note.dart';
+import 'package:myNotes/utils/database_helper.dart';
 import 'package:myNotes/widgets/note_item.dart';
+
+ScrollController _scrollCtrl = new ScrollController();
 
 class MainScreen extends StatefulWidget {
   @override
@@ -25,7 +30,10 @@ class _MainScreenState extends State<MainScreen> {
         child: SafeArea(child: NotesList()),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => AddNote()));
+        },
         child: Icon(Icons.add),
         backgroundColor: Colors.indigo,
       ),
@@ -39,13 +47,43 @@ class NotesList extends StatefulWidget {
 }
 
 class _NotesListState extends State<NotesList> {
+  DatabaseHelper databaseHelper;
+
+  @override
+  void initState() {
+    super.initState();
+    databaseHelper = DatabaseHelper.databaseHelper;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      scrollDirection: Axis.vertical,
-      children: [
-        NoteItem(),
-      ],
+    return Container(
+      child: FutureBuilder<List<Note>>(
+        future: databaseHelper.fetchAllNotes(),
+        builder: (BuildContext context, AsyncSnapshot<List<Note>> snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              shrinkWrap: true,
+              controller: _scrollCtrl,
+              itemCount: snapshot.data.length,
+              itemBuilder: (BuildContext context, int index) {
+                return NoteItem(
+                    snapshot.data[index].nid,
+                    snapshot.data[index].title,
+                    snapshot.data[index].description,
+                    snapshot.data[index].timestamp,
+                    snapshot.data[index].priority,
+                    snapshot.data[index].isDone);
+              },
+            );
+          } else {
+            return Center(
+              child: Text("LIST EMPTY"),
+            );
+          }
+        },
+      ),
     );
   }
 }

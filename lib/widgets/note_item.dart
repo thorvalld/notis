@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:myNotes/utils/database_helper.dart';
 
 class NoteItem extends StatefulWidget {
+  final int id, priority, status;
+  final String title, desc, createdAt;
+  NoteItem(this.id, this.title, this.desc, this.createdAt, this.priority,
+      this.status);
   @override
   _NoteItemState createState() => _NoteItemState();
 }
 
 class _NoteItemState extends State<NoteItem> {
-  bool isCompleted = false;
+  DatabaseHelper databaseHelper;
+  @override
+  void initState() {
+    super.initState();
+    databaseHelper = DatabaseHelper.databaseHelper;
+  }
+
   @override
   Widget build(BuildContext context) {
+    bool isCompleted = widget.status == 0 ? false : true;
     return Material(
       elevation: 4.0,
       borderRadius: BorderRadius.circular(12.0),
       child: Container(
+        margin: EdgeInsets.only(bottom: 3.0),
         padding: EdgeInsets.all(8.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -30,12 +43,12 @@ class _NoteItemState extends State<NoteItem> {
                   width: 12.0,
                 ),
                 Text(
-                  "LORUM IPSUM",
+                  '${widget.title}',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Spacer(),
                 Text(
-                  DateTime.now().toString().substring(0, 10),
+                  '${widget.createdAt}',
                   style: TextStyle(fontWeight: FontWeight.w300),
                 )
               ],
@@ -43,11 +56,13 @@ class _NoteItemState extends State<NoteItem> {
             SizedBox(
               height: 16.0,
             ),
-            Text(
-                "Lorem aliquip cillum ex consequat aliquip. Elit consectetur fugiat quis sunt enim sint. Elit aliquip eiusmod labore adipisicing proident eiusmod in adipisicing nostrud laborum magna. Officia consectetur cillum ut magna non reprehenderit minim nulla magna occaecat ad est Lorem ad."),
+            Text('${widget.desc}'),
             SizedBox(height: 18.0),
             GestureDetector(
               onTap: () {
+                isCompleted
+                    ? databaseHelper.setAsDone(widget.status)
+                    : databaseHelper.setAsInProgress(widget.status);
                 setState(() {
                   isCompleted = !isCompleted;
                 });
